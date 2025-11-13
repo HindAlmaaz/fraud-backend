@@ -1,0 +1,31 @@
+patient_id,age,gender,chronic_conditions
+P001,56,F,Asthma
+P002,69,M,Hypertension
+P003,46,F,Kidney Failure
+P004,32,F,Asthma
+P005,60,F,Obesity
+P006,25,F,Hypertension
+P007,78,F,Diabetes
+P008,38,F,Hypertension
+P009,56,F,Kidney Failure
+P010,75,F,Diabetes
+P011,36,M,Obesity
+P012,40,M,Kidney Failure
+P013,28,F,Diabetes
+P014,28,F,Asthma
+P015,41,F,Obesity
+P016,70,M,Diabetes
+P017,53,F,Asthma
+P018,57,M,Obesity
+P019,41,M,Asthma
+P020,20,M,Diabetes
+P021,32,M,Heart Disease
+P022,38,F,Chronic Kidney Disease
+P023,40,M,Liver Cirrhosis
+P024,58,M,Anemia
+P025,57,F,Thyroid Disorder
+P026,59,F,Cancer
+P027,66,F,Osteoarthritis
+P028,37,M,Asthma
+P029,77,M,Diabetes
+P030,80,F,Cancer

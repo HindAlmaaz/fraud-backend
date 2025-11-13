@@ -1,0 +1,11 @@
+doctor_id,hospital_id,specialty
+DOC001,H001,Internal Medicine
+DOC002,H001,Family Medicine
+DOC003,H002,Pulmonology
+DOC004,H002,Endocrinology
+DOC005,H003,Pain Management
+DOC006,H003,General Surgery
+DOC007,H001,Orthopedics
+DOC008,H002,Neurology
+DOC009,H003,Emergency Medicine
+DOC010,H001,ENT Specialist
