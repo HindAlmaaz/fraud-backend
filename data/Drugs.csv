@@ -1,0 +1,21 @@
+drug_name,active_ingredient,is_controlled,typical_price
+Paracetamol,Paracetamol,False,1.0
+Ibuprofen,Ibuprofen,False,1.5
+Amoxicillin,Amoxicillin,False,2.5
+Metformin,Metformin,False,3.0
+Omeprazole,Omeprazole,False,2.0
+Atorvastatin,Atorvastatin,False,3.5
+Losartan,Losartan,False,3.0
+Loratadine,Loratadine,False,2.2
+Vitamin D,Vitamin D,False,1.3
+Aspirin,Aspirin,False,1.8
+Tramadol,Tramadol,True,8.0
+Diazepam,Diazepam,True,6.0
+Morphine,Morphine,True,10.0
+Codeine,Codeine,True,7.5
+Alprazolam,Alprazolam,True,5.5
+Clonazepam,Clonazepam,True,5.8
+Fentanyl,Fentanyl,True,9.5
+Oxycodone,Oxycodone,True,9.0
+Hydrocodone,Hydrocodone,True,8.5
+Methadone,Methadone,True,10.0
