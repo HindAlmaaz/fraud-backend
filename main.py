@@ -1,67 +1,55 @@
 # main.py
 from pathlib import Path
-from typing import List, Optional, Literal
+from typing import List, Optional
 
+import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import pandas as pd
 
-# ---------------------------------------------------------------------
-# Paths & CSV loading
-# ---------------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent
 
+# ---------------------------------------------------------------------
+# CSV loading helpers
+# ---------------------------------------------------------------------
+def load_csv_safe(name: str, encodings=("utf-8", "cp1256", "latin-1")) -> pd.DataFrame:
+    path = BASE_DIR / name
+    last_err = None
+    for enc in encodings:
+        try:
+            return pd.read_csv(path, encoding=enc)
+        except UnicodeDecodeError as e:
+            last_err = e
+            continue
+    # fallback
+    if last_err:
+        print(f"[WARN] Could not decode {name} cleanly, using latin-1:", last_err)
+    return pd.read_csv(path, encoding="latin-1")
 
-def load_csv(name: str, encoding: str = "utf-8") -> pd.DataFrame:
-    """Generic CSV loader, default UTF-8."""
-    return pd.read_csv(BASE_DIR / name, encoding=encoding)
 
-
-# ⚠️ Only Transactions_Clean needs latin-1 (this avoided your utf-8 error on Render)
-transactions_df = load_csv("Transactions_Clean.csv", encoding="latin-1")
-patients_df = load_csv("Patients.csv")
-hospitals_df = load_csv("Hospitals.csv")
-drugs_df = load_csv("Drugs.csv")
-doctors_df = load_csv("Doctors.csv")
+transactions_df = load_csv_safe("Transactions_Clean.csv", encodings=("latin-1", "utf-8"))
+patients_df = load_csv_safe("Patients.csv")
+hospitals_df = load_csv_safe("Hospitals.csv")
+drugs_df = load_csv_safe("Drugs.csv")
+doctors_df = load_csv_safe("Doctors.csv")
 
 # ---------------------------------------------------------------------
-# Basic cleaning / types
+# Basic cleaning
 # ---------------------------------------------------------------------
-# Ensure column names that we rely on exist
-REQUIRED_TX_COLS = [
-    "prescription_id",
-    "patient_id",
-    "doctor_id",
-    "hospital_id",
-    "drug_name",
-    "quantity",
-    "unit_price",
-    "total_price",
-    "date",
-]
-missing = [c for c in REQUIRED_TX_COLS if c not in transactions_df.columns]
-if missing:
-    raise RuntimeError(f"Missing columns in Transactions_Clean.csv: {missing}")
+# Ensure date / year / quarter exist
+if "date" in transactions_df.columns:
+    transactions_df["date"] = pd.to_datetime(transactions_df["date"], errors="coerce")
+else:
+    transactions_df["date"] = pd.NaT
 
-# Parse dates
-transactions_df["date"] = pd.to_datetime(transactions_df["date"], errors="coerce")
-
-# Add year / quarter helpers
 transactions_df["year"] = transactions_df["date"].dt.year
 transactions_df["quarter"] = transactions_df["date"].dt.quarter
 
-# Ensure useful columns exist
-if "is_fraudulent" not in transactions_df.columns:
-    transactions_df["is_fraudulent"] = 0
+# If no hospital_id column, try a reasonable fallback
+if "hospital_id" not in transactions_df.columns:
+    raise RuntimeError("Transactions_Clean.csv must contain 'hospital_id' column")
 
-if "is_controlled" not in drugs_df.columns:
-    # if your CSV has 0/1 or True/False, pandas will keep them; if not, default False
-    drugs_df["is_controlled"] = False
-
-# ---------------------------------------------------------------------
-# Merge + scoring
-# ---------------------------------------------------------------------
+# Merge into one big dataframe for scoring
 merged = (
     transactions_df
     .merge(patients_df, on="patient_id", how="left", suffixes=("", "_patient"))
@@ -70,76 +58,41 @@ merged = (
     .merge(drugs_df, on="drug_name", how="left", suffixes=("", "_drug"))
 )
 
-# Simple financial score: how far from typical price
-def compute_financial_score(row):
+# ---------------------------------------------------------------------
+# Simple fraud scoring (lightweight & robust)
+# ---------------------------------------------------------------------
+def safe_float(x, default=0.0):
     try:
-        typical = float(row.get("typical_price", 0) or 0)
-        qty = float(row.get("quantity", 0) or 0)
-        total = float(row.get("total_price", 0) or 0)
+        if pd.isna(x):
+            return default
+        return float(x)
     except Exception:
-        return 0.0
-
-    expected = typical * qty
-    if expected <= 0:
-        return 0.0
-
-    ratio = total / expected
-    if ratio <= 1:
-        return 0.0
-    # cap at 1
-    return min(1.0, (ratio - 1.0))
+        return default
 
 
-# Temporal score: many prescriptions of same drug for same patient in short time
-def compute_temporal_score(df: pd.DataFrame) -> pd.Series:
-    df_sorted = df.sort_values(["patient_id", "drug_name", "date"])
-    df_sorted["prev_date"] = df_sorted.groupby(
-        ["patient_id", "drug_name"]
-    )["date"].shift(1)
-    days = (df_sorted["date"] - df_sorted["prev_date"]).dt.days
-    score = days.fillna(9999).apply(
-        lambda d: 1.0 if d <= 7 else (0.5 if d <= 30 else 0.0)
-    )
-    df_sorted["temporal_score"] = score
-    return df_sorted.sort_index()["temporal_score"]
+def compute_score(row) -> float:
+    """
+    Very simple heuristic that only uses columns that usually exist.
+    This is NOT for real use – just to drive the dashboard safely.
+    """
+    qty = safe_float(row.get("quantity", 0))
+    total_price = safe_float(row.get("total_price", row.get("unit_price", 0)))
+    # normalize quantity
+    qty_score = min(1.0, qty / 10.0)
+    price_score = min(1.0, total_price / 500.0)
+
+    # If we happen to have a label column, use it
+    label_cols = ["is_fraudulent", "fraud_label", "fraud"]
+    label_score = 0.0
+    for col in label_cols:
+        if col in row and safe_float(row[col]) > 0:
+            label_score = 1.0
+            break
+
+    return max(0.0, min(1.0, 0.4 * qty_score + 0.4 * price_score + 0.4 * label_score))
 
 
-# Clinical score: controlled + chronic disease mismatch ⇒ higher risk
-def compute_clinical_score(row):
-    is_ctrl = bool(row.get("is_controlled", False))
-    chronic = str(row.get("chronic_conditions", "") or "").lower()
-    drug = str(row.get("drug_name", "") or "").lower()
-
-    base = 0.0
-    if is_ctrl:
-        base += 0.4
-
-    # tiny heuristic examples – adjust to your real logic if you like
-    pain_keywords = ["morphine", "fentanyl", "oxycodone"]
-    if any(k in drug for k in pain_keywords) and "cancer" not in chronic:
-        base += 0.4
-
-    diabetes_keywords = ["insulin", "metformin"]
-    if any(k in drug for k in diabetes_keywords) and "diabetes" not in chronic:
-        base += 0.4
-
-    return min(1.0, base)
-
-
-# Anomaly score: combination of the above + mark known fraud
-merged["financial_score"] = merged.apply(compute_financial_score, axis=1)
-merged["temporal_score"] = compute_temporal_score(merged)
-merged["clinical_score"] = merged.apply(compute_clinical_score, axis=1)
-
-# if label exists, bump the score
-merged["anomaly_score"] = (
-    merged["financial_score"] * 0.35
-    + merged["temporal_score"] * 0.25
-    + merged["clinical_score"] * 0.3
-    + merged["is_fraudulent"].fillna(0) * 0.3
-)
-
-merged["final_fraud_score"] = merged["anomaly_score"].clip(0, 1)
+merged["final_fraud_score"] = merged.apply(compute_score, axis=1)
 
 def band(score: float) -> str:
     if score >= 0.7:
@@ -148,16 +101,12 @@ def band(score: float) -> str:
         return "Medium"
     return "Low"
 
-
 merged["risk_band"] = merged["final_fraud_score"].apply(band)
-
-# bucket used in risk distribution (can be adjusted)
 merged["bucket"] = merged["risk_band"]
-
 scored_df = merged.copy()
 
 # ---------------------------------------------------------------------
-# Pydantic models for API
+# Pydantic models
 # ---------------------------------------------------------------------
 class RiskDistributionItem(BaseModel):
     label: str
@@ -184,9 +133,9 @@ class FraudReport(BaseModel):
     low_risk_cases: int
     controlled_drug_use: int
     active_alerts: int
-    trend_last_3_months: List[TrendPoint]
-    top_suspicious_drugs: List[DrugItem]
-    risk_distribution: List[RiskDistributionItem]
+    trend_last_3_months: list[TrendPoint]
+    top_suspicious_drugs: list[DrugItem]
+    risk_distribution: list[RiskDistributionItem]
     summary_text: str
 
 
@@ -211,25 +160,50 @@ class TopCasesResponse(BaseModel):
     hospital_id: str
     year: Optional[int]
     quarter: Optional[int]
-    cases: List[TopCase]
+    cases: list[TopCase]
 
 
 # ---------------------------------------------------------------------
-# FastAPI app + CORS
+# FastAPI app
 # ---------------------------------------------------------------------
-app = FastAPI(title="Hospital Prescription Fraud Backend")
+app = FastAPI(title="Fraud Backend")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # for hackathon / demo – tighten later
+    allow_origins=["*"],  # demo
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ---------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------
+
+@app.get("/")
+def root():
+    return {"status": "ok", "message": "Fraud backend is running"}
+
+
+@app.get("/api/hospitals")
+def list_hospitals():
+    # Try Arabic name column first if it exists
+    name_col = "hospital_name_ar" if "hospital_name_ar" in hospitals_df.columns else (
+        "hospital_name" if "hospital_name" in hospitals_df.columns else None
+    )
+
+    cols = ["hospital_id"]
+    if name_col:
+        cols.append(name_col)
+
+    df = hospitals_df[cols].drop_duplicates().sort_values("hospital_id")
+
+    records = []
+    for _, row in df.iterrows():
+        item = {"hospital_id": row["hospital_id"]}
+        if name_col:
+            item["hospital_name"] = str(row[name_col])
+        records.append(item)
+    return records
+
+
 def filter_hospital_year_quarter(
     df: pd.DataFrame, hospital_id: str, year: Optional[int], quarter: Optional[int]
 ) -> pd.DataFrame:
@@ -241,43 +215,19 @@ def filter_hospital_year_quarter(
     return sub
 
 
-def recommended_action_for_band(band: str) -> str:
-    if band == "High":
+def recommended_action(b: str) -> str:
+    if b == "High":
         return "Needs investigation"
-    if band == "Medium":
+    if b == "Medium":
         return "Review required"
     return "Low risk"
 
 
-# ---------------------------------------------------------------------
-# Routes
-# ---------------------------------------------------------------------
-@app.get("/")
-def root():
-    return {"status": "ok", "message": "Fraud backend is running"}
-
-
-@app.get("/api/hospitals")
-def list_hospitals():
-    # Only expose id + name to frontend
-    out = (
-        hospitals_df[["hospital_id", "hospital_name"]]
-        .drop_duplicates()
-        .sort_values("hospital_id")
-    )
-    return out.to_dict(orient="records")
-
-
 @app.get("/api/fraud-report", response_model=FraudReport)
-def fraud_report(
-    hospital_id: str,
-    year: int,
-    quarter: Optional[int] = None,
-):
+def fraud_report(hospital_id: str, year: int, quarter: Optional[int] = None):
     sub = filter_hospital_year_quarter(scored_df, hospital_id, year, quarter)
 
     if sub.empty:
-        # Still return a valid structure with zeros, so frontend doesn't break
         return FraudReport(
             hospital_id=hospital_id,
             year=year,
@@ -289,9 +239,9 @@ def fraud_report(
             controlled_drug_use=0,
             active_alerts=0,
             trend_last_3_months=[
-                TrendPoint(month="Month 1", value=0),
-                TrendPoint(month="Month 2", value=0),
-                TrendPoint(month="Month 3", value=0),
+                TrendPoint(month="Month 1", value=0.0),
+                TrendPoint(month="Month 2", value=0.0),
+                TrendPoint(month="Month 3", value=0.0),
             ],
             top_suspicious_drugs=[],
             risk_distribution=[
@@ -299,90 +249,100 @@ def fraud_report(
                 RiskDistributionItem(label="Medium", value=0),
                 RiskDistributionItem(label="Low", value=0),
             ],
-            summary_text="No prescriptions were found for this hospital and period.",
+            summary_text="No prescriptions found for this filter.",
         )
 
     total_prescriptions = len(sub)
+    high_risk_cases = int((sub["risk_band"] == "High").sum())
+    medium_risk_cases = int((sub["risk_band"] == "Medium").sum())
+    low_risk_cases = int((sub["risk_band"] == "Low").sum())
 
-    high_risk_cases = (sub["risk_band"] == "High").sum()
-    medium_risk_cases = (sub["risk_band"] == "Medium").sum()
-    low_risk_cases = (sub["risk_band"] == "Low").sum()
+    # controlled drug use if the column exists
+    if "is_controlled" in sub.columns:
+        controlled_drug_use = int(sub["is_controlled"].fillna(0).astype(int).sum())
+    else:
+        controlled_drug_use = 0
 
-    # controlled drug use
-    controlled_drug_use = sub["is_controlled"].fillna(False).astype(int).sum()
+    active_alerts = high_risk_cases + medium_risk_cases
 
-    # "Active alerts" = all non-low
-    active_alerts = int(high_risk_cases + medium_risk_cases)
+    # trend – last 3 months
+    dates = sub["date"]
+    if dates.notna().any():
+        trend_raw = (
+            sub.groupby(sub["date"].dt.to_period("M"))["final_fraud_score"]
+            .mean()
+            .sort_index()
+            .tail(3)
+        )
+        trend_points = [
+            TrendPoint(month=f"Month {i+1}", value=float(v))
+            for i, (_, v) in enumerate(trend_raw.items())
+        ]
+    else:
+        trend_points = [
+            TrendPoint(month="Month 1", value=0.0),
+            TrendPoint(month="Month 2", value=0.0),
+            TrendPoint(month="Month 3", value=0.0),
+        ]
 
-    # Trend (last 3 months available)
-    last_months = (
-        sub.groupby(sub["date"].dt.to_period("M"))["final_fraud_score"]
-        .mean()
-        .sort_index()
-    )
-
-    last_months = last_months.tail(3)
-    trend_points = []
-    for i, (period, value) in enumerate(last_months.items(), start=1):
-        trend_points.append(
-            TrendPoint(month=f"Month {i}", value=round(float(value), 3))
+    while len(trend_points) < 3:
+        trend_points.insert(
+            0, TrendPoint(month=f"Month {3 - len(trend_points)}", value=0.0)
         )
 
-    # pad to 3 if fewer
-    while len(trend_points) < 3:
-        trend_points.insert(0, TrendPoint(month=f"Month {3-len(trend_points)}", value=0))
+    # top drugs
+    if "drug_name" in sub.columns:
+        drug_group = (
+            sub.groupby("drug_name")["final_fraud_score"]
+            .mean()
+            .sort_values(ascending=False)
+            .head(3)
+        )
+        top_drugs = [
+            DrugItem(drug_name=str(d), avg_fraud_score=float(s))
+            for d, s in drug_group.items()
+        ]
+    else:
+        top_drugs = []
 
-    # Top suspicious drugs by average fraud score
-    drug_group = (
-        sub.groupby("drug_name")["final_fraud_score"]
-        .mean()
-        .sort_values(ascending=False)
-        .head(3)
-    )
-    top_drugs = [
-        DrugItem(drug_name=str(d), avg_fraud_score=round(float(score), 3))
-        for d, score in drug_group.items()
-    ]
-
-    # Risk distribution
+    # risk distribution
     dist = (
         sub.groupby("bucket")["risk_band"]
         .size()
         .reindex(["High", "Medium", "Low"], fill_value=0)
     )
     risk_distribution = [
-        RiskDistributionItem(label=str(label), value=int(value))
-        for label, value in dist.items()
+        RiskDistributionItem(label=str(lbl), value=int(val))
+        for lbl, val in dist.items()
     ]
 
-    # Summary text (simple narrative)
+    # summary
     risk_level = "LOW"
     if high_risk_cases > 0:
         risk_level = "HIGH"
     elif medium_risk_cases > 0:
         risk_level = "MEDIUM"
 
-    summary = (
-        f"Current hospital risk level is classified as {risk_level} based on "
-        f"{total_prescriptions} prescriptions in the selected period. "
-        f"{high_risk_cases} prescriptions fall in the high-risk category and "
-        f"{medium_risk_cases} in the medium-risk category."
+    summary_text = (
+        f"Current hospital risk level is {risk_level} with "
+        f"{high_risk_cases} high-risk and {medium_risk_cases} medium-risk prescriptions "
+        f"out of {total_prescriptions} total in the selected period."
     )
 
     return FraudReport(
         hospital_id=hospital_id,
         year=year,
         quarter=quarter,
-        total_prescriptions=total_prescriptions,
-        high_risk_cases=int(high_risk_cases),
-        medium_risk_cases=int(medium_risk_cases),
-        low_risk_cases=int(low_risk_cases),
-        controlled_drug_use=int(controlled_drug_use),
+        total_prescriptions=int(total_prescriptions),
+        high_risk_cases=high_risk_cases,
+        medium_risk_cases=medium_risk_cases,
+        low_risk_cases=low_risk_cases,
+        controlled_drug_use=controlled_drug_use,
         active_alerts=int(active_alerts),
         trend_last_3_months=trend_points,
         top_suspicious_drugs=top_drugs,
         risk_distribution=risk_distribution,
-        summary_text=summary,
+        summary_text=summary_text,
     )
 
 
@@ -394,7 +354,6 @@ def top_cases(
     limit: int = 10,
 ):
     sub = filter_hospital_year_quarter(scored_df, hospital_id, year, quarter)
-
     if sub.empty:
         raise HTTPException(status_code=404, detail="No data for this filter")
 
@@ -404,20 +363,22 @@ def top_cases(
     for _, row in ranked.iterrows():
         cases.append(
             TopCase(
-                prescription_id=str(row["prescription_id"]),
-                patient_id=str(row["patient_id"]),
-                doctor_id=str(row["doctor_id"]),
+                prescription_id=str(row.get("prescription_id", "")),
+                patient_id=str(row.get("patient_id", "")),
+                doctor_id=str(row.get("doctor_id", "")),
                 doctor_specialty=row.get("specialty") or row.get("doctor_specialty"),
-                drug_name=str(row["drug_name"]),
-                quantity=float(row.get("quantity", 0) or 0),
-                date=row["date"].strftime("%Y-%m-%d") if pd.notnull(row["date"]) else None,
-                financial_score=round(float(row["financial_score"]), 3),
-                temporal_score=round(float(row["temporal_score"]), 3),
-                clinical_score=round(float(row["clinical_score"]), 3),
-                anomaly_score=round(float(row["anomaly_score"]), 3),
-                final_fraud_score=round(float(row["final_fraud_score"]), 3),
+                drug_name=str(row.get("drug_name", "")),
+                quantity=safe_float(row.get("quantity", 0.0)),
+                date=row["date"].strftime("%Y-%m-%d")
+                if pd.notna(row.get("date"))
+                else None,
+                financial_score=0.0,  # we didn't compute separate components
+                temporal_score=0.0,
+                clinical_score=0.0,
+                anomaly_score=float(row["final_fraud_score"]),
+                final_fraud_score=float(row["final_fraud_score"]),
                 risk_band=str(row["risk_band"]),
-                recommended_action=recommended_action_for_band(str(row["risk_band"])),
+                recommended_action=recommended_action(str(row["risk_band"])),
             )
         )
 
