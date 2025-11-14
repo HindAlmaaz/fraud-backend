@@ -31,10 +31,47 @@ drugs_df = _read_csv("Drugs.csv")
 doctors_df = _read_csv("Doctors.csv")
 patients_df = _read_csv("Patients.csv")
 
-# Make sure key columns have the right dtypes
-transactions_df["year"] = transactions_df["year"].astype(int)
-transactions_df["quarter"] = transactions_df["quarter"].astype(int)
-transactions_df["month"] = transactions_df["month"].astype(int)
+# -------------------------------------------------------------------
+# Clean / normalize columns (year, quarter, month)
+# -------------------------------------------------------------------
+def _parse_int_like(val):
+    """
+    Turn '2025', 'Q2', 'q3', 'Month 4', '4' -> 2025, 2, 3, 4, 4
+    Returns np.nan if it can't parse.
+    """
+    if pd.isna(val):
+        return np.nan
+    s = str(val).strip().lower()
+    # remove common prefixes
+    for prefix in ("q", "quarter", "month", "m"):
+        if s.startswith(prefix):
+            s = s[len(prefix) :].strip()
+    # keep only digits
+    digits = "".join(ch for ch in s if ch.isdigit())
+    if not digits:
+        return np.nan
+    try:
+        return int(digits)
+    except ValueError:
+        return np.nan
+
+
+# year should already be numeric, but make sure
+transactions_df["year"] = transactions_df["year"].apply(_parse_int_like).astype(
+    "Int64"
+)
+
+# quarter might be 'Q1', 'Q2', etc.
+if "quarter" in transactions_df.columns:
+    transactions_df["quarter"] = (
+        transactions_df["quarter"].apply(_parse_int_like).astype("Int64")
+    )
+
+# month can be 1-12 or strings like 'Month 1'
+if "month" in transactions_df.columns:
+    transactions_df["month"] = transactions_df["month"].apply(_parse_int_like).astype(
+        "Int64"
+    )
 
 # If is_controlled is 0/1, coerce to bool
 if "is_controlled" in drugs_df.columns:
@@ -105,7 +142,7 @@ def filter_scored(
     """
     df = transactions_df[transactions_df["hospital_id"] == hospital_id]
     df = df[df["year"] == year]
-    if quarter is not None:
+    if quarter is not None and "quarter" in df.columns:
         df = df[df["quarter"] == quarter]
 
     if df.empty:
@@ -133,12 +170,15 @@ def build_fraud_report(
     active_alerts = high  # simple rule: all high-risk cases are alerts
 
     # Fraud trend – last 3 months available in this subset
-    months = sorted(scored["month"].unique())
+    if "month" in scored.columns:
+        months = sorted([m for m in scored["month"].dropna().unique()])
+    else:
+        months = []
+
     last3 = months[-3:]
     trend = []
     for m in last3:
         sub = scored[scored["month"] == m]
-        # count of high-risk prescriptions in that month
         value = int((sub["risk_band"] == "High").sum())
         trend.append({"month": f"Month {m}", "value": value})
 
@@ -317,4 +357,3 @@ def top_cases(
         "quarter": None if quarter is None else f"Q{quarter}",
         "cases": build_top_cases(hospital_id, year, quarter, limit),
     }
-
