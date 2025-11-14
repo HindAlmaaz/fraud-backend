@@ -1,0 +1,501 @@
+patient_id,age,gender,chronic_conditions
+P001,71,M,Diabetes
+P002,58,F,Heart Disease
+P003,47,M,Asthma
+P004,34,M,Kidney Failure
+P005,73,M,Diabetes
+P006,20,M,Thyroid Disorder
+P007,36,F,Kidney Failure
+P008,54,M,Thyroid Disorder
+P009,46,F,Kidney Failure
+P010,27,M,Arthritis
+P011,63,M,Thyroid Disorder
+P012,62,F,None
+P013,82,M,Arthritis
+P014,46,M,None
+P015,81,F,None
+P016,29,M,Asthma
+P017,67,F,Obesity
+P018,27,F,Heart Disease
+P019,25,M,None
+P020,42,F,Diabetes
+P021,71,M,Asthma
+P022,46,M,Asthma
+P023,33,M,Heart Disease
+P024,50,F,Heart Disease
+P025,85,M,Heart Disease
+P026,70,F,Kidney Failure
+P027,33,F,Diabetes
+P028,42,M,Heart Disease
+P029,40,F,Kidney Failure
+P030,31,M,Thyroid Disorder
+P031,30,M,Kidney Failure
+P032,43,F,Thyroid Disorder
+P033,39,F,Obesity
+P034,45,F,Obesity
+P035,67,M,Asthma
+P036,30,F,High Cholesterol
+P037,57,M,Heart Disease
+P038,35,F,Hypertension
+P039,46,M,High Cholesterol
+P040,67,F,Diabetes
+P041,37,M,High Cholesterol
+P042,52,F,Asthma
+P043,63,M,Asthma
+P044,60,F,Hypertension
+P045,39,F,Asthma
+P046,34,M,Heart Disease
+P047,66,M,Kidney Failure
+P048,67,F,Arthritis
+P049,74,M,Thyroid Disorder
+P050,78,M,None
+P051,71,M,None
+P052,19,M,Arthritis
+P053,25,F,High Cholesterol
+P054,84,F,Asthma
+P055,71,M,Diabetes
+P056,35,M,Arthritis
+P057,66,F,None
+P058,38,M,High Cholesterol
+P059,67,F,High Cholesterol
+P060,71,F,High Cholesterol
+P061,84,M,Heart Disease
+P062,75,F,Thyroid Disorder
+P063,55,F,Thyroid Disorder
+P064,67,F,Asthma
+P065,52,M,None
+P066,68,M,High Cholesterol
+P067,50,M,High Cholesterol
+P068,45,M,None
+P069,48,M,Arthritis
+P070,73,F,Kidney Failure
+P071,73,M,Diabetes
+P072,47,F,Obesity
+P073,27,F,Kidney Failure
+P074,54,M,High Cholesterol
+P075,82,M,None
+P076,28,F,Hypertension
+P077,54,M,Thyroid Disorder
+P078,35,M,Kidney Failure
+P079,44,F,Kidney Failure
+P080,70,F,Obesity
+P081,30,F,High Cholesterol
+P082,49,F,Thyroid Disorder
+P083,29,F,Kidney Failure
+P084,56,F,High Cholesterol
+P085,60,F,None
+P086,48,F,Kidney Failure
+P087,73,M,Asthma
+P088,57,M,Asthma
+P089,39,F,Thyroid Disorder
+P090,50,M,Diabetes
+P091,29,M,High Cholesterol
+P092,31,F,High Cholesterol
+P093,35,F,Hypertension
+P094,75,F,Heart Disease
+P095,50,F,Asthma
+P096,76,M,Thyroid Disorder
+P097,52,F,High Cholesterol
+P098,38,F,High Cholesterol
+P099,82,F,Kidney Failure
+P100,82,M,Hypertension
+P101,27,M,Hypertension
+P102,34,F,Diabetes
+P103,23,F,Arthritis
+P104,76,F,High Cholesterol
+P105,56,F,Asthma
+P106,31,F,High Cholesterol
+P107,24,F,Kidney Failure
+P108,35,M,Hypertension
+P109,82,F,Asthma
+P110,67,M,Asthma
+P111,77,F,None
+P112,59,F,Obesity
+P113,35,F,Hypertension
+P114,59,F,Heart Disease
+P115,47,M,Diabetes
+P116,35,M,Obesity
+P117,30,F,Diabetes
+P118,28,F,Asthma
+P119,25,F,Hypertension
+P120,24,F,Heart Disease
+P121,30,M,High Cholesterol
+P122,31,M,Diabetes
+P123,82,M,Heart Disease
+P124,31,F,Hypertension
+P125,18,M,Asthma
+P126,49,F,High Cholesterol
+P127,22,F,Hypertension
+P128,26,F,Hypertension
+P129,46,M,None
+P130,48,M,Kidney Failure
+P131,38,M,Diabetes
+P132,44,M,Hypertension
+P133,78,F,Asthma
+P134,49,M,Asthma
+P135,55,M,Obesity
+P136,36,F,Heart Disease
+P137,46,F,Heart Disease
+P138,81,M,Diabetes
+P139,77,M,Hypertension
+P140,77,F,Kidney Failure
+P141,29,M,High Cholesterol
+P142,85,M,None
+P143,29,F,None
+P144,27,F,Diabetes
+P145,77,F,Hypertension
+P146,71,M,Hypertension
+P147,63,F,High Cholesterol
+P148,69,F,Heart Disease
+P149,52,M,None
+P150,51,M,Heart Disease
+P151,29,M,High Cholesterol
+P152,65,F,Heart Disease
+P153,64,F,Heart Disease
+P154,21,M,Kidney Failure
+P155,45,M,Thyroid Disorder
+P156,79,M,Heart Disease
+P157,53,F,None
+P158,33,F,Heart Disease
+P159,45,F,Heart Disease
+P160,56,F,Diabetes
+P161,74,F,None
+P162,25,M,High Cholesterol
+P163,78,F,Thyroid Disorder
+P164,50,M,None
+P165,32,M,Thyroid Disorder
+P166,31,F,Arthritis
+P167,35,F,High Cholesterol
+P168,30,M,Kidney Failure
+P169,47,F,Obesity
+P170,50,F,Arthritis
+P171,59,F,High Cholesterol
+P172,68,F,Thyroid Disorder
+P173,82,M,Arthritis
+P174,68,M,None
+P175,31,M,Obesity
+P176,81,F,Obesity
+P177,30,M,High Cholesterol
+P178,65,M,Asthma
+P179,44,M,Diabetes
+P180,52,M,Diabetes
+P181,80,M,Thyroid Disorder
+P182,48,M,Hypertension
+P183,54,F,Thyroid Disorder
+P184,54,M,Thyroid Disorder
+P185,23,M,Heart Disease
+P186,49,F,None
+P187,33,M,Arthritis
+P188,33,F,Kidney Failure
+P189,59,F,Thyroid Disorder
+P190,29,M,None
+P191,50,M,Heart Disease
+P192,33,M,Diabetes
+P193,78,F,High Cholesterol
+P194,46,F,Diabetes
+P195,23,F,High Cholesterol
+P196,44,M,Heart Disease
+P197,18,F,Asthma
+P198,39,M,Diabetes
+P199,34,M,Thyroid Disorder
+P200,83,F,Hypertension
+P201,34,M,High Cholesterol
+P202,73,F,Arthritis
+P203,35,M,Thyroid Disorder
+P204,80,M,None
+P205,80,F,Asthma
+P206,66,F,Diabetes
+P207,19,M,High Cholesterol
+P208,19,F,Asthma
+P209,67,F,Thyroid Disorder
+P210,53,M,Arthritis
+P211,52,F,Hypertension
+P212,45,F,Kidney Failure
+P213,27,F,Kidney Failure
+P214,53,F,Diabetes
+P215,44,M,Kidney Failure
+P216,22,F,None
+P217,58,M,Thyroid Disorder
+P218,41,F,Hypertension
+P219,24,M,Thyroid Disorder
+P220,52,F,Thyroid Disorder
+P221,32,M,Arthritis
+P222,69,M,Arthritis
+P223,84,M,Arthritis
+P224,64,M,Arthritis
+P225,56,F,Hypertension
+P226,72,F,Asthma
+P227,32,F,Heart Disease
+P228,53,M,None
+P229,37,M,Arthritis
+P230,79,M,Thyroid Disorder
+P231,74,F,Heart Disease
+P232,75,F,Arthritis
+P233,28,F,Diabetes
+P234,37,M,Obesity
+P235,52,M,Diabetes
+P236,26,M,Arthritis
+P237,71,M,Obesity
+P238,41,M,Heart Disease
+P239,71,F,Asthma
+P240,79,M,Arthritis
+P241,81,M,Kidney Failure
+P242,50,F,Arthritis
+P243,32,F,Hypertension
+P244,25,M,None
+P245,54,F,Arthritis
+P246,68,M,Thyroid Disorder
+P247,48,M,Diabetes
+P248,19,F,Thyroid Disorder
+P249,24,F,Thyroid Disorder
+P250,55,F,Asthma
+P251,75,M,Thyroid Disorder
+P252,64,M,Diabetes
+P253,85,M,Arthritis
+P254,59,M,Arthritis
+P255,61,M,Kidney Failure
+P256,33,F,Thyroid Disorder
+P257,34,F,Asthma
+P258,58,F,Obesity
+P259,52,F,High Cholesterol
+P260,23,M,None
+P261,85,M,Kidney Failure
+P262,18,F,Hypertension
+P263,33,M,None
+P264,76,M,High Cholesterol
+P265,23,F,None
+P266,59,M,Hypertension
+P267,51,M,Hypertension
+P268,81,M,Hypertension
+P269,74,F,Hypertension
+P270,72,F,Thyroid Disorder
+P271,41,M,Obesity
+P272,46,M,Heart Disease
+P273,62,F,Hypertension
+P274,44,M,Arthritis
+P275,85,M,Kidney Failure
+P276,78,M,Obesity
+P277,43,M,Diabetes
+P278,37,M,High Cholesterol
+P279,84,F,Kidney Failure
+P280,50,F,Heart Disease
+P281,42,M,Obesity
+P282,37,F,Kidney Failure
+P283,51,M,None
+P284,47,M,High Cholesterol
+P285,43,M,None
+P286,71,F,Hypertension
+P287,19,F,Kidney Failure
+P288,63,M,Thyroid Disorder
+P289,35,M,Diabetes
+P290,69,F,Obesity
+P291,20,M,Arthritis
+P292,81,F,Heart Disease
+P293,30,F,Hypertension
+P294,66,M,Hypertension
+P295,44,M,Hypertension
+P296,49,F,Thyroid Disorder
+P297,57,F,Kidney Failure
+P298,83,F,Asthma
+P299,61,M,High Cholesterol
+P300,28,F,Kidney Failure
+P301,82,F,Heart Disease
+P302,54,M,Kidney Failure
+P303,39,F,Heart Disease
+P304,40,M,Arthritis
+P305,39,M,Asthma
+P306,29,M,High Cholesterol
+P307,51,M,Arthritis
+P308,56,M,Arthritis
+P309,20,F,Hypertension
+P310,29,M,Obesity
+P311,57,M,Arthritis
+P312,65,F,Hypertension
+P313,45,M,Asthma
+P314,85,F,Heart Disease
+P315,55,M,Kidney Failure
+P316,85,F,Arthritis
+P317,41,F,None
+P318,43,F,Thyroid Disorder
+P319,76,M,Heart Disease
+P320,34,F,Obesity
+P321,56,F,Obesity
+P322,18,M,Heart Disease
+P323,39,F,Diabetes
+P324,68,F,Arthritis
+P325,63,M,None
+P326,40,M,Kidney Failure
+P327,61,F,Hypertension
+P328,50,M,Hypertension
+P329,45,M,Thyroid Disorder
+P330,46,F,Asthma
+P331,68,F,Diabetes
+P332,59,F,Kidney Failure
+P333,74,F,Kidney Failure
+P334,20,F,Diabetes
+P335,48,M,Kidney Failure
+P336,36,M,None
+P337,65,F,Obesity
+P338,49,F,Kidney Failure
+P339,65,F,None
+P340,39,F,Obesity
+P341,39,M,High Cholesterol
+P342,31,F,Obesity
+P343,38,F,Obesity
+P344,74,F,Thyroid Disorder
+P345,48,M,Thyroid Disorder
+P346,27,M,Obesity
+P347,68,F,Diabetes
+P348,32,M,Obesity
+P349,61,F,Asthma
+P350,79,M,Thyroid Disorder
+P351,84,F,None
+P352,51,F,Hypertension
+P353,61,M,Arthritis
+P354,20,F,Hypertension
+P355,84,M,Kidney Failure
+P356,44,F,Diabetes
+P357,43,F,Arthritis
+P358,76,M,High Cholesterol
+P359,28,F,Hypertension
+P360,63,F,Diabetes
+P361,80,M,Kidney Failure
+P362,38,M,Diabetes
+P363,81,M,Arthritis
+P364,27,M,Asthma
+P365,46,M,Heart Disease
+P366,29,M,Asthma
+P367,48,F,Kidney Failure
+P368,33,M,Kidney Failure
+P369,44,M,Hypertension
+P370,73,F,None
+P371,55,F,Arthritis
+P372,34,F,Obesity
+P373,48,F,Asthma
+P374,64,M,Diabetes
+P375,48,M,Diabetes
+P376,56,M,Hypertension
+P377,45,M,Heart Disease
+P378,24,M,Diabetes
+P379,79,F,Hypertension
+P380,82,F,None
+P381,51,F,Hypertension
+P382,19,M,Arthritis
+P383,45,M,None
+P384,43,M,Asthma
+P385,37,M,None
+P386,76,F,Hypertension
+P387,27,M,Kidney Failure
+P388,81,F,Arthritis
+P389,61,F,Kidney Failure
+P390,82,M,Heart Disease
+P391,75,M,Kidney Failure
+P392,79,M,Arthritis
+P393,74,F,Obesity
+P394,71,F,Obesity
+P395,82,M,Thyroid Disorder
+P396,35,F,High Cholesterol
+P397,24,F,Thyroid Disorder
+P398,27,F,Kidney Failure
+P399,27,F,Kidney Failure
+P400,65,M,Diabetes
+P401,73,M,Thyroid Disorder
+P402,28,F,High Cholesterol
+P403,34,F,Thyroid Disorder
+P404,20,F,Heart Disease
+P405,51,M,Arthritis
+P406,34,M,Arthritis
+P407,61,F,High Cholesterol
+P408,81,M,Arthritis
+P409,24,F,Heart Disease
+P410,78,F,Kidney Failure
+P411,69,M,Diabetes
+P412,68,M,Diabetes
+P413,59,F,Obesity
+P414,37,F,Thyroid Disorder
+P415,59,M,Hypertension
+P416,61,M,Asthma
+P417,61,M,Asthma
+P418,32,M,Asthma
+P419,56,F,Diabetes
+P420,46,M,Thyroid Disorder
+P421,49,F,Heart Disease
+P422,31,M,High Cholesterol
+P423,54,F,High Cholesterol
+P424,57,F,Thyroid Disorder
+P425,35,M,Asthma
+P426,78,M,Obesity
+P427,33,F,High Cholesterol
+P428,73,F,Hypertension
+P429,79,F,Thyroid Disorder
+P430,49,M,Heart Disease
+P431,48,M,Kidney Failure
+P432,58,M,Thyroid Disorder
+P433,72,M,Asthma
+P434,58,M,None
+P435,47,F,Asthma
+P436,28,F,High Cholesterol
+P437,51,F,Heart Disease
+P438,29,F,Hypertension
+P439,26,M,Diabetes
+P440,71,M,Asthma
+P441,68,M,High Cholesterol
+P442,49,M,Diabetes
+P443,84,F,Arthritis
+P444,40,F,Heart Disease
+P445,24,M,Arthritis
+P446,23,M,None
+P447,39,M,Diabetes
+P448,27,M,Diabetes
+P449,67,F,High Cholesterol
+P450,36,F,Hypertension
+P451,37,M,None
+P452,77,F,High Cholesterol
+P453,76,M,Arthritis
+P454,47,M,Kidney Failure
+P455,60,F,Arthritis
+P456,51,M,High Cholesterol
+P457,46,M,Thyroid Disorder
+P458,52,M,Hypertension
+P459,66,M,Diabetes
+P460,33,F,Obesity
+P461,70,F,Hypertension
+P462,50,M,Hypertension
+P463,56,F,High Cholesterol
+P464,65,F,Heart Disease
+P465,71,F,Asthma
+P466,24,M,Diabetes
+P467,55,M,None
+P468,37,F,Obesity
+P469,77,F,Diabetes
+P470,57,F,Diabetes
+P471,52,M,Obesity
+P472,49,M,Obesity
+P473,36,F,Obesity
+P474,45,F,Obesity
+P475,76,M,None
+P476,63,M,Arthritis
+P477,61,F,Arthritis
+P478,44,M,Thyroid Disorder
+P479,47,M,Kidney Failure
+P480,21,F,Heart Disease
+P481,65,M,Asthma
+P482,84,M,Asthma
+P483,38,F,Obesity
+P484,83,F,Kidney Failure
+P485,69,M,Asthma
+P486,81,F,High Cholesterol
+P487,29,M,Arthritis
+P488,70,M,Arthritis
+P489,61,F,Diabetes
+P490,41,F,Hypertension
+P491,71,F,Arthritis
+P492,79,M,Asthma
+P493,78,F,Thyroid Disorder
+P494,61,F,Diabetes
+P495,26,F,None
+P496,65,M,Asthma
+P497,18,F,Hypertension
+P498,53,F,Kidney Failure
+P499,78,M,Kidney Failure
+P500,21,M,Obesity
