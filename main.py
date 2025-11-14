@@ -25,7 +25,7 @@ def _read_csv(name: str) -> pd.DataFrame:
 
 
 # Load all CSVs once at startup
-transactions_df = _read_csv("Transactions_clean.csv")
+transactions_df = _read_csv("Transactions_Clean.csv")
 hospitals_df = _read_csv("Hospitals.csv")
 drugs_df = _read_csv("Drugs.csv")
 doctors_df = _read_csv("Doctors.csv")
@@ -317,3 +317,4 @@ def top_cases(
         "quarter": None if quarter is None else f"Q{quarter}",
         "cases": build_top_cases(hospital_id, year, quarter, limit),
     }
+
