@@ -345,6 +345,16 @@ def fraud_report(
     report = build_fraud_report(hospital_id, year, quarter)
     return report
 
+@app.get("/api/years")
+def list_years():
+    """
+    Returns all distinct years present in Transactions_Clean.csv, sorted.
+    Used to populate the year dropdown dynamically.
+    """
+    years_series = transactions_df["year"].dropna().unique().tolist()
+    years = sorted(int(y) for y in years_series)
+    return {"years": years}
+
 
 @app.get("/api/top-cases")
 def top_cases(
