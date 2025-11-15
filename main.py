@@ -231,17 +231,17 @@ def build_fraud_report(
         "hospital_name": hospital_row["hospital_name"],
         "year": int(year),
         "quarter": quarter_label,
-        "hospital_risk_level": risk_level,          # renamed for frontend
+        "hospital_risk_level": risk_level,          # for frontend
         "total_prescriptions": total,
         "high_risk_cases": high,
         "medium_risk_cases": med,
         "low_risk_cases": low,
         "controlled_drug_use": controlled,
         "active_alerts": active_alerts,
-        "summary": summary,                         # added summary
-        "trend_last_3_months": trend,               # renamed for frontend
+        "summary": summary,
+        "trend_last_3_months": trend,
         "top_suspicious_drugs": top_drugs,
-        "risk_distribution": risk_distribution,     # now {High, Medium, Low}
+        "risk_distribution": risk_distribution,
     }
 
 
@@ -325,6 +325,17 @@ def list_hospitals():
     return {"hospitals": items}
 
 
+@app.get("/api/years")
+def list_years():
+    """
+    Returns all distinct years present in Transactions_Clean.csv, sorted.
+    Used to populate the year dropdown dynamically.
+    """
+    years_series = transactions_df["year"].dropna().unique().tolist()
+    years = sorted(int(y) for y in years_series)
+    return {"years": years}
+
+
 @app.get("/api/fraud-report")
 def fraud_report(
     hospital_id: str,
@@ -336,24 +347,14 @@ def fraud_report(
     """
     Main dashboard endpoint.
     Example:
-    /api/fraud-report?hospital_id=H001&year=2025
-    /api/fraud-report?hospital_id=H001&year=2025&quarter=4
+    /api/fraud-report?hospital_id=H001&year=2021
+    /api/fraud-report?hospital_id=H001&year=2021&quarter=4
     """
     if hospital_id not in set(hospitals_df["hospital_id"]):
         raise HTTPException(status_code=404, detail="Unknown hospital_id")
 
     report = build_fraud_report(hospital_id, year, quarter)
     return report
-
-@app.get("/api/years")
-def list_years():
-    """
-    Returns all distinct years present in Transactions_Clean.csv, sorted.
-    Used to populate the year dropdown dynamically.
-    """
-    years_series = transactions_df["year"].dropna().unique().tolist()
-    years = sorted(int(y) for y in years_series)
-    return {"years": years}
 
 
 @app.get("/api/top-cases")
