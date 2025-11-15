@@ -45,7 +45,7 @@ def _parse_int_like(val):
     # remove common prefixes
     for prefix in ("q", "quarter", "month", "m"):
         if s.startswith(prefix):
-            s = s[len(prefix) :].strip()
+            s = s[len(prefix):].strip()
     # keep only digits
     digits = "".join(ch for ch in s if ch.isdigit())
     if not digits:
@@ -57,9 +57,7 @@ def _parse_int_like(val):
 
 
 # year should already be numeric, but make sure
-transactions_df["year"] = transactions_df["year"].apply(_parse_int_like).astype(
-    "Int64"
-)
+transactions_df["year"] = transactions_df["year"].apply(_parse_int_like).astype("Int64")
 
 # quarter might be 'Q1', 'Q2', etc.
 if "quarter" in transactions_df.columns:
@@ -73,9 +71,9 @@ if "month" in transactions_df.columns:
         "Int64"
     )
 
-# If is_controlled is 0/1, coerce to bool
+# If is_controlled is 0/1, coerce to bool safely
 if "is_controlled" in drugs_df.columns:
-    drugs_df["is_controlled"] = drugs_df["is_controlled"].astype(bool)
+    drugs_df["is_controlled"] = drugs_df["is_controlled"].fillna(0).astype(bool)
 
 # -------------------------------------------------------------------
 # Scoring helpers
@@ -113,13 +111,13 @@ def score_transactions(df: pd.DataFrame) -> pd.DataFrame:
     merged["volume_score"] = np.clip((qty_ratio - 1.0) / 4.0, 0, 1.0)  # 1 when >=5x
 
     # Control score – controlled substances get a bonus
-    merged["control_score"] = np.where(merged["is_controlled"], 0.3, 0.0)
+    merged["control_score"] = np.where(
+        merged["is_controlled"].fillna(False), 0.3, 0.0
+    )
 
     # Final score and risk band
     merged["final_fraud_score"] = np.clip(
-        merged["financial_score"]
-        + merged["volume_score"]
-        + merged["control_score"],
+        merged["financial_score"] + merged["volume_score"] + merged["control_score"],
         0,
         1.0,
     )
@@ -194,11 +192,12 @@ def build_fraud_report(
         for name, val in drug_scores.items()
     ]
 
-    risk_distribution = [
-        {"name": "High risk", "value": high},
-        {"name": "Medium risk", "value": med},
-        {"name": "Low risk", "value": low},
-    ]
+    # Risk distribution as an OBJECT (for frontend pie chart)
+    risk_distribution = {
+        "High": high,
+        "Medium": med,
+        "Low": low,
+    }
 
     # Overall hospital risk level
     high_ratio = high / total if total > 0 else 0
@@ -215,21 +214,34 @@ def build_fraud_report(
 
     quarter_label = None if quarter is None else f"Q{quarter}"
 
+    # Human-readable summary for the UI
+    if quarter is None:
+        period_label = f"{year} (full year)"
+    else:
+        period_label = f"{year} Q{quarter}"
+
+    summary = (
+        f"{hospital_row['hospital_name']} had {total} prescriptions in {period_label}, "
+        f"with {high} high-risk, {med} medium-risk, and {low} low-risk cases. "
+        f"{controlled} prescriptions involved controlled drugs."
+    )
+
     return {
         "hospital_id": hospital_id,
         "hospital_name": hospital_row["hospital_name"],
         "year": int(year),
         "quarter": quarter_label,
-        "risk_level": risk_level,
+        "hospital_risk_level": risk_level,          # renamed for frontend
         "total_prescriptions": total,
         "high_risk_cases": high,
         "medium_risk_cases": med,
         "low_risk_cases": low,
         "controlled_drug_use": controlled,
         "active_alerts": active_alerts,
-        "fraud_trend_last_3_months": trend,
+        "summary": summary,                         # added summary
+        "trend_last_3_months": trend,               # renamed for frontend
         "top_suspicious_drugs": top_drugs,
-        "risk_distribution": risk_distribution,
+        "risk_distribution": risk_distribution,     # now {High, Medium, Low}
     }
 
 
@@ -279,7 +291,6 @@ def build_top_cases(
 # -------------------------------------------------------------------
 app = FastAPI(title="Prescription Fraud Backend")
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # for development / Netlify – you can restrict later
@@ -287,7 +298,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # -------------------------------------------------------------------
 # Endpoints
